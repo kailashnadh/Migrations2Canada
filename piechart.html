@@ -1,0 +1,159 @@
+<html>
+
+<head>
+  <meta charset="utf-8">
+  <title>Population in Canada by Province</title>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.0/css/bootstrap.min.css">
+  <link rel="stylesheet" href="index.css">
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+  <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.0/js/bootstrap.min.js"></script>
+  <script src="http://d3js.org/d3.v3.min.js" charset="utf-8"></script>
+</head>
+
+<body>
+  <header>
+    <h1>MIGRATIONS TO CANADA</h1>
+  </header>
+  <nav class="nav">
+    <ul>
+      <li><a href="index.html">Home</a></li>
+      <li><a href="barchart.html">Origin Statistics</a></li>
+      <li><a href="piechart.html">Wage Proportions</a></li>
+      <li><a href="world.html">Maps</a></li>
+    </ul>
+  </nav>
+  <h3>The proportion of families in canada</h3>
+  <div id="dropdown"></div>
+  <div id="myPie"></div>
+  <script src="http://d3js.org/d3.v4.min.js" charset="utf-8"></script>
+  <script src="data/d3pie.min.js"></script>
+  <script src="data/d3.min.js"></script>
+  <script>
+//       var pie = new d3pie("myPie", {
+//    header: {
+//        title: {
+//            text: ""
+//        }
+//    },
+//    data: {
+//        content: [
+//            { label: "Middle Class", value: 30 },
+//            { label: "Lower Class", value: 20 },
+//            { label: "Upper Class", value: 30},
+//			{ label: "Upper Middle Class", value: 20},
+//        ]
+//     },
+// 
+//   
+//     callbacks: {
+//        onMouseoverSegment: function(info) {
+//            console.log("mouse in", info);
+//        },
+//        onMouseoutSegment: function(info) {
+//            console.log("mouseout:", info);
+//        }
+//    }
+//      
+//});
+    var newOrigin = 'Alberta';
+    var data = [];
+    // Get JSON data and wait for the response
+    d3.csv("./data/data.csv", function (error, json) {
+      console.log(json);
+      var resArr = [];
+      json.forEach(function (item) {
+        var i = resArr.findIndex(x => x.region == item.region);
+        if (i <= -1) {
+          resArr.push({ region: item.region });
+        }
+      });
+      updateData(newOrigin);
+      console.log(resArr.sort());
+      console.log(resArr.map(a => a.region));
+        
+      function updateData(newOrigin) {
+
+        filtereddata = json.filter(x => x.region === newOrigin);
+          console.log(filtereddata);
+        var maxvalue = d3.max(filtereddata, d => d.count);
+        var minvalue=d3.min(filtereddata, d => d.count);
+        var yScale = d3.scaleLinear().domain([minvalue,maxvalue]).range([0,100]);
+        data = [];
+        $.each(filtereddata, function (d, i) {
+          data.push({
+            label: i.fruit,
+            value: yScale(parseInt(i.count))
+        });
+        })
+        console.log(data);
+        $("#myPie").html("");
+        var pie = new d3pie("myPie", {
+          "header": {
+            "title": {
+              "text": "The proportion of families in canada",
+              "fontSize": 22,
+              "font": "verdana"
+            },
+          },
+          "size": {
+            "canvasHeight": 400,
+            "canvasWidth": 590
+          },
+          "data": {
+            content: data
+          },
+          "callbacks": {
+            "onMouseoverSegment": function (info) {
+              console.log("mouse in", info);
+            },
+            "onMouseoutSegment": function (info) {
+              console.log("mouseout:", info);
+            }
+          },
+          "labels": {
+            "outer": {
+              "pieDistance": 32
+            }
+          }
+        });
+
+
+      }
+               
+  
+
+      var dropdownChange = function () {
+        newOrigin = d3.select(this).property('value');
+        console.log(newOrigin);
+        updateData(newOrigin);
+      };
+
+
+      var origin = resArr.map(a => a.region);
+
+      var dropdown = d3.select("#dropdown")
+        .insert("select", "svg")
+        .on("change", dropdownChange);
+
+      dropdown.selectAll("option")
+        .data(origin.sort())
+        .enter().append("option")
+        .attr("value", function (d) { return d; })
+        .text(function (d) {
+          return d[0].toUpperCase() + d.slice(1, d.length); // capitalize 1st letter
+        });
+
+
+    });
+
+
+  </script>
+  <footer>
+    <h4>Contact Us</h4>
+    <img class="foot" src="images/fb.png">&nbsp;&nbsp;&nbsp;<img class="foot" src="images/twitter.png">
+  </footer>
+</body>
+
+</html>
